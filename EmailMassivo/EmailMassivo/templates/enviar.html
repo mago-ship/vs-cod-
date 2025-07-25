@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Envio de E-mails</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px 15px 0 0 !important;
+            border: none;
+            color: white;
+            padding: 20px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .input-group-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px 0 0 10px;
+        }
+        .logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        .header-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+            font-weight: 500;
+        }
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-ativo {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-vencido {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .file-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header da Aplicação -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ url_for('static', filename='logo.svg') }}" alt="Logo" class="logo">
+                                <h4 class="mb-0">Sistema de Envio de E-mails</h4>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-user me-2"></i>{{ user.username }}
+                                    <br>
+                                    <small>{{ user.email }}</small>
+                                </div>
+                                <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="header-info mt-3">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <i class="fas fa-crown me-2"></i>
+                                    <strong>Plano:</strong> {{ subscription_info.plano|title }}
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>Status:</strong>
+                                    <span class="status-badge status-{{ subscription_info.status }}">
+                                        {{ subscription_info.status|title }}
+                                    </span>
+                                </div>
+                                <div class="col-md-4">
+                                    {% if subscription_info.data_vencimento %}
+                                    <i class="fas fa-calendar me-2"></i>
+                                    <strong>Vence em:</strong> {{ subscription_info.data_vencimento.strftime('%d/%m/%Y') }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-8">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulário Principal -->
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-paper-plane me-2"></i>Enviar E-mails em Massa
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" enctype="multipart/form-data" id="emailForm">
+                            <!-- Credenciais do Remetente -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label for="sender_email" class="form-label fw-bold">
+                                        <i class="fas fa-envelope text-primary me-2"></i>Seu E-mail (Gmail)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fab fa-google"></i>
+                                        </span>
+                                        <input type="email" 
+                                               class="form-control" 
+                                               id="sender_email" 
+                                               name="sender_email" 
+                                               placeholder="seu.email@gmail.com"
+                                               required>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Use seu e-mail do Gmail
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="sender_password" class="form-label fw-bold">
+                                        <i class="fas fa-key text-primary me-2"></i>Senha de App do Gmail
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" 
+                                               class="form-control" 
+                                               id="sender_password" 
+                                               name="sender_password" 
+                                               placeholder="Senha de aplicativo"
+                                               required>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <a href="https://support.google.com/accounts/answer/185833" target="_blank">
+                                            Como gerar senha de app?
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Assunto do E-mail -->
+                            <div class="mb-4">
+                                <label for="subject" class="form-label fw-bold">
+                                    <i class="fas fa-tag text-primary me-2"></i>Assunto do E-mail
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="subject" 
+                                       name="subject" 
+                                       placeholder="Digite o assunto do e-mail"
+                                       required>
+                            </div>
+
+                            <!-- Mensagem do E-mail -->
+                            <div class="mb-4">
+                                <label for="body" class="form-label fw-bold">
+                                    <i class="fas fa-edit text-primary me-2"></i>Mensagem do E-mail
+                                </label>
+                                <textarea class="form-control" 
+                                          id="body" 
+                                          name="body" 
+                                          rows="8" 
+                                          placeholder="Digite a mensagem do e-mail..."
+                                          required></textarea>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Você pode usar HTML básico para formatação
+                                </div>
+                            </div>
+
+                            <!-- Upload de Arquivo -->
+                            <div class="mb-4">
+            <label class="form-label fw-bold">
+                <i class="fas fa-upload text-primary me-2"></i>Lista de E-mails
+            </label>
+            <div class="file-upload-area" onclick="document.getElementById('email_file').click()">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <p class="mb-2"><strong>Clique aqui para selecionar o arquivo</strong></p>
+                <p class="text-muted mb-0">
+                    Arquivos suportados: .txt, .csv, .xlsx (máx. 16MB)
+                </p>
+                <input type="file" 
+                       class="form-control d-none" 
+                       id="email_file" 
+                       name="email_file" 
+                       accept=".txt,.csv,.xlsx"
+                       required>
+            </div>
+            <div id="file-name" class="mt-2 text-success fw-bold" style="display: none;">
+                <i class="fas fa-file-check me-2"></i>
+                <span></span>
+            </div>
+                            </div>
+
+                            <!-- Botão de Envio -->
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    Enviar E-mails
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações de Ajuda -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-question-circle text-primary me-2"></i>Como usar:
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-file-alt fa-2x text-primary mb-2"></i>
+                                    <h6>1. Prepare o arquivo</h6>
+                                    <small class="text-muted">
+                                        Arquivo .txt com um e-mail por linha, ou .csv/.xlsx com e-mails na primeira coluna
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-edit fa-2x text-primary mb-2"></i>
+                                    <h6>2. Escreva a mensagem</h6>
+                                    <small class="text-muted">
+                                        Digite o assunto e o conteúdo do e-mail que será enviado
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-paper-plane fa-2x text-primary mb-2"></i>
+                                    <h6>3. Envie</h6>
+                                    <small class="text-muted">
+                                        Configure suas credenciais do Gmail e clique em enviar
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Handle file selection display
+        document.getElementById('email_file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            const fileNameDiv = document.getElementById('file-name');
+            
+            if (fileName) {
+                fileNameDiv.querySelector('span').textContent = fileName;
+                fileNameDiv.style.display = 'block';
+            } else {
+                fileNameDiv.style.display = 'none';
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.querySelector('.file-upload-area');
+        const fileInput = document.getElementById('email_file');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadArea.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            uploadArea.classList.remove('dragover');
+        }
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Form validation
+        document.getElementById('emailForm').addEventListener('submit', function(e) {
+            const senderEmail = document.getElementById('sender_email').value;
+            const senderPassword = document.getElementById('sender_password').value;
+            const subject = document.getElementById('subject').value;
+            const body = document.getElementById('body').value;
+            const file = document.getElementById('email_file').files[0];
+
+            if (!senderEmail || !senderPassword || !subject || !body || !file) {
+                e.preventDefault();
+                alert('Por favor, preencha todos os campos e selecione um arquivo.');
+                return false;
+            }
+
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+            submitBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

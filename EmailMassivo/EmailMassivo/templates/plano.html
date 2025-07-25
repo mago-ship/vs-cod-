@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planos e Assinatura - Sistema de Email em Massa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .container-main {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .plan-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .plan-header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .plan-body {
+            padding: 2rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            color: #2d3436;
+        }
+        
+        .status-unlimited {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+        }
+        
+        .payment-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #4facfe;
+        }
+        
+        .pix-key {
+            background: #fff;
+            border: 2px dashed #4facfe;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #2d3436;
+            margin: 1rem 0;
+        }
+        
+        .btn-payment {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 2rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-payment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 184, 148, 0.3);
+            background: linear-gradient(135deg, #00a085 0%, #00b7b3 100%);
+            color: white;
+        }
+        
+        .btn-logout {
+            background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(253, 121, 168, 0.3);
+            background: linear-gradient(135deg, #fd6c9e 0%, #fdbe5b 100%);
+            color: white;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 1rem;
+        }
+        
+        .features-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .features-list i {
+            color: #00b894;
+            margin-right: 0.5rem;
+        }
+        
+        .logo {
+            height: 40px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="/static/logo.svg" alt="Logo" class="logo">
+                <span class="fw-bold">Sistema de Email</span>
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">
+                    <i class="fas fa-user me-2"></i>{{ username }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn btn-logout btn-sm">
+                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container container-main">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% elif category == 'success' %}success{% elif category == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <i class="fas fa-crown mb-3" style="font-size: 3rem;"></i>
+                        <h2>Plano Premium</h2>
+                        <p class="mb-0">Envio ilimitado de emails em massa</p>
+                    </div>
+                    
+                    <div class="plan-body">
+                        <!-- Status do Plano -->
+                        <div class="text-center">
+                            {% if current_plan == 'ilimitado' %}
+                                <span class="status-badge status-unlimited">
+                                    <i class="fas fa-check-circle me-2"></i>Plano Ativo
+                                </span>
+                                <h5 class="text-success">Seu plano está ativo!</h5>
+                                <p class="text-muted">Você tem acesso completo ao sistema de envio de emails.</p>
+                                <div class="d-grid gap-2 mt-3">
+                                    <a href="{{ url_for('index') }}" class="btn btn-payment">
+                                        <i class="fas fa-paper-plane me-2"></i>Acessar Sistema de Envio
+                                    </a>
+                                </div>
+                            {% else %}
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-clock me-2"></i>Plano Pendente
+                                </span>
+                                <h5 class="text-warning">Seu plano está pendente</h5>
+                                <p class="text-muted">Para usar o sistema de envio de emails, é necessário ativar seu plano premium.</p>
+                                
+                                <!-- Informações de Pagamento -->
+                                <div class="payment-info">
+                                    <h6><i class="fas fa-credit-card me-2"></i>Informações para Pagamento</h6>
+                                    <p class="mb-2"><strong>Valor da Mensalidade:</strong> R$ 29,90/mês</p>
+                                    <p class="mb-2"><strong>Forma de Pagamento:</strong> PIX</p>
+                                    
+                                    <div class="pix-key">
+                                        <i class="fab fa-pix me-2" style="color: #4facfe;"></i>
+                                        email.sistema@exemplo.com.br
+                                    </div>
+                                    
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Após realizar o pagamento, clique no botão "Já Paguei" para ativar seu plano.
+                                    </small>
+                                </div>
+                                
+                                <!-- Funcionalidades Incluídas -->
+                                <div class="mb-4">
+                                    <h6><i class="fas fa-star me-2"></i>O que está incluído:</h6>
+                                    <ul class="features-list">
+                                        <li><i class="fas fa-check"></i>Envio ilimitado de emails</li>
+                                        <li><i class="fas fa-check"></i>Suporte a arquivos TXT e CSV</li>
+                                        <li><i class="fas fa-check"></i>Validação automática de emails</li>
+                                        <li><i class="fas fa-check"></i>Remoção de duplicatas</li>
+                                        <li><i class="fas fa-check"></i>Interface moderna e responsiva</li>
+                                        <li><i class="fas fa-check"></i>Suporte técnico</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Botão de Confirmação de Pagamento -->
+                                <form method="POST" class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-payment">
+                                        <i class="fas fa-check-double me-2"></i>Já Paguei - Ativar Plano
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações Adicionais -->
+                <div class="text-center text-white">
+                    <p class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Dúvidas? Entre em contato: suporte@emailsistema.com.br
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Confirmação de ativação do plano
+        document.querySelector('form')?.addEventListener('submit', function(e) {
+            if (!confirm('Confirma que já realizou o pagamento? O plano será ativado imediatamente.')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

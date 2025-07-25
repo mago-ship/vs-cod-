@@ -1,0 +1,70 @@
+Crie um sistema web completo em Flask com as seguintes funcionalidades:
+
+🧱 1. Banco de Dados:
+- Use Flask-SQLAlchemy com SQLite
+- Crie as tabelas:
+  • `User`: id, username, email, password_hash
+  • `Subscription`: id, user_id (foreign key), plano (mensal, trimestral, vitalicio, vip), status (pendente, ativo), data_inicio, data_expiracao
+- Ao registrar novo usuário:
+  • Se o e-mail for "ofigura.2012@gmail.com", atribua automaticamente plano 'vip', status 'ativo' e acesso vitalício
+  • Para os demais, registre plano 'gratuito' ou 'pendente'
+
+🔐 2. Registro e Login:
+- Rota `/register`: formulário com username, email, senha, confirmar senha
+- Rota `/login`: login por email e senha
+- Use `Flask-Login` para gerenciar sessões
+- Após login, verifique o status e validade do plano no banco
+  • Se for 'ativo', redireciona para `/enviar`
+  • Se for 'pendente' ou expirado, redireciona para `/plano`
+
+💳 3. Página de Planos `/plano`:
+- Mostre as opções:
+  • Mensal – R$30 – 30 dias
+  • Trimestral – R$70 – 90 dias
+  • Vitalício – R$199 – acesso permanente
+- Mostre qual plano o usuário possui atualmente
+- Crie botões de pagamento usando Mercado Pago com:
+  • Access Token: APP_USR-5413260080815389-072322-601ba0b9ffad2be1002cff3221949fb8-236429747
+- Gere links de pagamento para cada plano com descrição e valor corretos
+- Crie rota `/retorno_pagamento` como callback
+  • Quando o Mercado Pago confirmar o pagamento, atualize no banco:
+    - plano = adquirido
+    - status = ativo
+    - data_inicio = hoje
+    - data_expiracao = hoje + dias do plano (exceto vitalício)
+
+💡 Extra: Inclua botão "Já paguei" como alternativa manual para testes
+
+📤 4. Página `/enviar`:
+- Somente acessível para usuários com plano ativo
+- Formulário com:
+  • E-mail remetente
+  • Senha do app Gmail
+  • Assunto
+  • Corpo da mensagem
+  • Upload de `.txt`, `.csv` ou `.xlsx`
+- Leia os e-mails do arquivo (primeira coluna), remova duplicados
+- Envie os e-mails um por um com `smtplib` e `email.mime`, delay de 2 segundos
+
+🎨 5. Visual:
+- Use Bootstrap (ou Tailwind) para deixar a interface limpa e moderna
+- Mostre nome do usuário, tipo e status do plano no topo
+- Inclua botão de logout
+- Telas separadas para login, registro, plano, envio
+
+⚠️ 6. Segurança:
+- Nunca exponha a access token diretamente no HTML
+- Proteja as rotas com `@login_required`
+- Use hash de senha com `werkzeug.security`
+
+📦 7. Dependências:
+- flask
+- flask_sqlalchemy
+- flask_login
+- werkzeug
+- mercadopago
+- pandas
+- openpyxl
+- smtplib, email.mime
+
+Resultado: um sistema profissional, com controle de planos por assinatura, login/registro, pagamentos Mercado Pago, e envio individual de e-mails somente para usuários ativos. A conta "ofigura.2012@gmail.com" deve ter acesso total e vitalício.
